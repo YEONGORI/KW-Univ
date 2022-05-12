@@ -1,0 +1,106 @@
+Variables
+r0. s0 = n s1 = i+1 s2 = i+2 s5 s6 s7 
+t0 = n-1, t1 = i, t2 = j, t3 = min_idx, t4 = min_idx1, t5 = min_idx2 t6 = j1 t7 = j2
+
+Sort:	NOP					
+	addi $s0, $s0. 40			# n = 10, s0 = n * 4
+NOP 1
+	addi $t1, $t1, 0 			# i = 0
+	addi $t0, $s0, -4 			# t0 = (n-1) * 4
+NOP 2
+LOOP1:	beq $t0, $t1, END	 		# if i = n-1, goto END
+NOP 2
+	addi $t3, $t1, 0			# t3 = min_idx = i
+	addi $t2, $t1, 4			# t2 = t1 + 4 (j = i + 1)
+	addi $s1, $t1, 4			# s1 = i + 1
+	addi $t4, $t1, 4			# t4 = min_idx1 = i + 1
+	addi $t6, $t1, 8			# t6 = t1 + 8 (j1 = i + 2)
+	addi $s2, $t1, 8			# s2 = i + 2
+	addi $t5, $t1, 8			# t5 = min_idx2 = i + 2
+	addi $t7, $t1, 12			# t7 = t1 + 12 (j2 = i + 3)
+
+LOOP2:	beq $s0, $t2, Swap			# if j == n => Exit
+NOP 2
+	lw $s5, ($t3)				# s5 = arr[min]	
+	lw $s6, ($t2)				# s6 = arr[j]	
+NOP 2
+	slt $s7, $s5, $s6			# if arr[min] < arr[j], s7 = 1
+NOP 2
+	beq $s7, $r0, Continue			# if s7 == 0,  goto continue
+NOP 2
+	addi $t3, $t2, 0			# min = j
+
+Continue:addi $t2, $t2, 4			# j++
+NOP 1
+	j LOOP2
+
+Swap:	beq $t3, $t1, LOOP2_1		# if min == i goto Continue2
+NOP 2
+	lw $s5, ($t3)			# s5 = arr[min]
+	lw $s7, ($t1)			# s7 = arr[i]	
+NOP 2	
+	sw $s7, ($t3)			# arr[min] = s7
+	sw $s5, ($t1)			# arr[i] = s5
+
+
+
+LOOP2_1:	beq $s0, $t6, Swap_1			# if j1 == n => Exit
+NOP 2
+	lw $s5, ($t4)				# s5 = arr[min1]	
+	lw $s6, ($t6)				# s6 = arr[j1]	
+NOP 2
+	slt $s7, $s5, $s6			# if arr[min1] < arr[j1], s7 = 1
+NOP 2
+	beq $s7, $r0, Continue_1			# if s7 == 0,  goto continue
+NOP 2
+	addi $t4, $t6, 0			# min1 = j1
+
+Continue_1:addi $t6, $t6, 4			# j1++
+NOP 1
+	j LOOP2_1
+
+
+
+
+Swap_1:	beq $t4, $s1, LOOP2_2		# if min1 == i+1 goto Continue2
+NOP 2
+	lw $s5, ($t4)			# s5 = arr[min1]
+	lw $s7, ($s1)			# s7 = arr[i+1]	
+NOP 2	
+	sw $s7, ($t4)			# arr[min1] = s7
+	sw $s5, ($s1)			# arr[i+1] = s5
+
+
+
+LOOP2_2:	beq $s0, $t7, Swap_2			# if j2 == n => Exit
+NOP 2
+	lw $s5, ($t5)				# s5 = arr[min2]	
+	lw $s6, ($t7)				# s6 = arr[j2]	
+NOP 2
+	slt $s7, $s5, $s6			# if arr[min2] < arr[j2], s7 = 1
+NOP 2
+	beq $s7, $r0, Continue_2			# if s7 == 0,  goto continue
+NOP 2
+	addi $t5, $t7, 0			# min2 = j2
+
+Continue_2:addi $t7, $t7, 4			# j2++
+NOP 1
+	j LOOP2_2
+
+
+
+Swap_2:	beq $t5, $s2, Continue2		# if min2 == i+2 goto Continue2
+NOP 2
+	lw $s5, ($t5)			# s5 = arr[min2]
+	lw $s7, ($s2)			# s7 = arr[i+2]	
+NOP 2	
+	sw $s7, ($t5)			# arr[min2] = s7
+	sw $s5, ($s2)			# arr[i+2] = s5
+
+Continue2: addi $t1, $t1, 12			# i+= 3
+NOP 1
+	j LOOP1
+
+END:
+
+

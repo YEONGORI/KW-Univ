@@ -1,0 +1,10 @@
+000000_000011_xxxxx  // 0x02 : sra 	R타입
+000000_001001_xxxxx  // 0x07 : jalr	R타입
+000000_100011_xxxxx  // 0x14   subu	R타입
+000000_100110_xxxxx  // 0x17   xor	R타입
+000101_xxxxxx_xxxxx  // 0x20   bne  
+000110_xxxxxx_xxxxx  // 0x21   blez 
+001011_xxxxxx_xxxxx  // 0x26   sltiu
+001100_xxxxxx_xxxxx  // 0x27   andi 
+100100_xxxxxx_xxxxx  // 0x2e   lbu  
+101000_xxxxxx_xxxxx  // 0x30   sb 
