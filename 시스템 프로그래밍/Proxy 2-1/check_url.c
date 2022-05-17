@@ -137,7 +137,6 @@ void makeFile(char *dir_path, char *file_name)
 //////////////////////////////////////////////////////////////////
 int check_url(int *hit_cnt, int *miss_cnt, char *url)
 {
-        char *url;
         char *hashed_url;
         char home_dir[1024];
 
@@ -215,7 +214,7 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
                         end_time = time(NULL); // end of running time record
                         int running_time = (int)(end_time - start_time);
 
-                        fprintf(f, "[Terminated] run time: %d sec. #request hit : %d, miss : %d \n", running_time, hit_cnt, miss_cnt);
+                        fprintf(f, "[Terminated] run time: %d sec. #request hit : %d, miss : %d \n", running_time, *hit_cnt, *miss_cnt);
                         if (while_cnt > 0)
                         {
                                 fclose(f);

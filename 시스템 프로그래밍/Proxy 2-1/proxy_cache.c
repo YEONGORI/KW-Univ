@@ -1,338 +1,108 @@
-//////////////////////////////////////////////////////////////////////
-// File Name     : Server.c                                         //
-// Date          : 2022/05/04                                       //
-// Os            : Ubuntu 16.04 LTS 64bits                          //
-// Author        : Lee min Jae                                      //
-// Student ID    : 2018202048                                       //
-// ---------------------------------------------------------------- //
-// Title : System Programing Assignment #2-2 (proxy server)         //
-// Description : Make cache Directory of Proxy Server               //
-//               Make logfile Directory and file of Proxy Server    //
-//               Implement Hit & Miss                               //
-//               Main tasks are worked in a subprocess by fork()    //
-//               Send result of Hit & Miss to Browser               //
-//////////////////////////////////////////////////////////////////////
-
-
-#include <sys/socket.h>     //socket
-#include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <signal.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
 #include <arpa/inet.h>
 
-#include <stdlib.h>
-#include <stdio.h>          //sprintf()
-#include <string.h>         //strcpy()
-#include <openssl/sha.h>    //SHA1()
-#include <stdbool.h>        //bool
+#define PORT_NUM 39999
+#define BUFFER_SIZE 1024
 
-//fork
-#include <sys/wait.h>
-#include <unistd.h>
-
-//getHomeDirectory
-#include <sys/types.h>
-#include <unistd.h>
-#include <pwd.h>
-
-//mkdir
-#include <sys/stat.h>
-
-//creat
-#include <fcntl.h>
-
-//opendir, readdir
-#include <dirent.h>
-
-//localtime
-#include <time.h>
-
-
-
-#define BUFFSIZE 1024
-#define PORTNO 39999
-
-static void handler()
-{
-    pid_t pid;
-    int status;
-    while((pid = waitpid(-1, &status, WNOHANG))>0);
-}
-
-
-//////////////////////////////////////////////////////////////
-// sha1_hash                                                //
-// ======================================================== //
-// Input: char* -> Input Url                                //
-// Output: char* -> Hashed Url                              //
-// Purpose: Hashing Url with SHA1                           //
-//////////////////////////////////////////////////////////////
-
-char *sha1_hash(char *input_url, char *hashed_url){
-    unsigned char hashed_160bits[20];
-    char hashed_hex[41];
-    int i;
-
-    SHA1(input_url, strlen(input_url),hashed_160bits);
-
-    for(i=0; i<sizeof(hashed_160bits); i++)
-        sprintf(hashed_hex + i*2, "%02x", hashed_160bits[i]);
-    
-    strcpy(hashed_url, hashed_hex);
-
-    return hashed_url;
-}
-
-//////////////////////////////////////////////////////////////
-// getHomeDir                                               //
-// ======================================================== //
-// Input: -                                                 //
-// Output: char* -> Home Directory Path                     //
-// Purpose: Get Home Directory Path                         //
-//////////////////////////////////////////////////////////////
-
-char *getHomeDir(char *home) {
-    struct passwd *usr_info = getpwuid(getuid());
-    strcpy(home, usr_info->pw_dir);
-    
-    return home;
-}
-
-//////////////////////////////////////////////////////////////
-// getUrl                                                   //
-// ======================================================== //
-// Input: homeDir, mkdirPath, logfilePath, FILE* fp         //
-// Output: char[] result ( HIT or MISS)                     //
-// Purpose: Get URL, Write logfile, Make Cache              //
-//////////////////////////////////////////////////////////////
-
-const char* getUrl(int* countHit, int* countMiss,char URL[], char homeDir[],char mkdirPath[], char logfilePath[]){
-    FILE* fp;                               //make txt file
-    char temp[100];
-    char hashedUrl[100];
-    char inputUrl[100];
-    char *ptr;
-    sprintf(inputUrl,"%s",strtok(URL,"\n"));
-    ptr=strtok(inputUrl,"://");
-    ptr=strtok(NULL,"://");
-    strcpy(inputUrl,ptr);
-    char firstThree[4];
-    
-    char fileName[100];
-
-    char systemMessage[400];
-    int isExistFile=0;
-
-    struct tm *date;
-    time_t t = time(NULL);
-    
-    DIR* dirCur=NULL;
-    struct dirent* fileCur = NULL;
-
-    bzero(systemMessage,sizeof(systemMessage));
-    strcpy(mkdirPath,homeDir);
-    strcat(mkdirPath,"/cache");         //set Path
-        
-    sha1_hash(inputUrl, hashedUrl);        //hasing with sha1
-
-    firstThree[0]=hashedUrl[0];         //cut front three char
-    firstThree[1]=hashedUrl[1];
-    firstThree[2]=hashedUrl[2];
-    firstThree[3]='\0';
-    strcat(mkdirPath,"/");
-    strcat(mkdirPath,firstThree);
-    umask(0);
-    mkdir(mkdirPath, S_IRWXU | S_IRWXG | S_IRWXO);  //create directory    
-    dirCur=opendir(mkdirPath);
-
-    int j =0;
-    while(1)
-    {
-        fileName[j]=hashedUrl[j+3];     //make filename from hashedUrl[3~]
-        if(hashedUrl[j+3]=='\0'){
-            break;
-        }
-        j++;
-    }
-
-    strcat(mkdirPath,"/");
-    strcat(mkdirPath,fileName);    
-
-    while((fileCur=readdir(dirCur))!= NULL)
-    {
-        if(strcmp(fileCur->d_name,fileName)==0) //already exist
-        {
-            isExistFile=1;
-            break;
-        }
-    }
-
-    if(isExistFile==0)                        //MISS
-    {
-        (*countMiss)++;
-        creat(mkdirPath, 0777);             //create file
-        //write Miss info at logfile.txt
-        t = time(NULL);
-        date = localtime(&t);
-        sprintf(systemMessage,"[Miss] ServerPID : %d | %s-[%d/%d/%d, %d:%d:%d]\n",getpid(),inputUrl,date->tm_year+1900,date->tm_mon+1,date->tm_mday,date->tm_hour,date->tm_min,date->tm_sec);
-        fp= fopen(logfilePath,"a+");
-        fputs(systemMessage, fp);           //write logfile
-        fclose(fp); 
-        return("MISS\0");
-    }
-    else                                        //HIT
-    {
-        (*countHit)++;
-        //write Hit info at logfile.txt
-        t = time(NULL);
-        date = localtime(&t);
-        sprintf(systemMessage,"[Hit] ServerPID : %d | %s/%s-[%d/%d/%d, %d:%d:%d]\n[Hit]%s\n",getpid(),firstThree, fileName,date->tm_year+1900,date->tm_mon+1,date->tm_mday,date->tm_hour,date->tm_min,date->tm_sec,inputUrl);
-        fp= fopen(logfilePath,"a+");
-        fputs(systemMessage, fp);           //write logfile
-        fclose(fp);
-        return("HIT\0");
-    }
-        
-}
+int check_url(int *hit_cnt, int *miss_cnt, char *tokenized_req);
+void sig_handler(void);
 
 int main()
 {
-    struct sockaddr_in server_addr, client_addr;
-    int socket_fd, client_fd;
-    int len, len_out;
-    int state;
-    int Hit =0;
-    int Miss =0;
-    int* countHit=&Hit;
-    int* countMiss=&Miss;
-    char buf[BUFFSIZE];
-    char systemMessage[100];
-    pid_t pid;
+    int sock_fd_serv, sock_fd_client;
+    int cnt_hit, cnt_miss;
 
+    struct sockaddr_in addr_serv, addr_client;
 
-    time_t startTime, endTime;
-    char homeDir[100];
-    char mkdirPath[100];
-    char logfilePath[100];
-    
-    
-    getHomeDir(homeDir);                            //save home directory
-    strcpy(mkdirPath,homeDir);
-    strcpy(logfilePath,homeDir);
-    strcat(mkdirPath,"/cache");
-    strcat(logfilePath,"/logfile");
-    umask(0);                                       //set umask
-    mkdir(mkdirPath,S_IRWXU | S_IRWXG | S_IRWXO);   //create cache directory
-    mkdir(logfilePath,S_IRWXU | S_IRWXG | S_IRWXO); //create logfile directory
+    cnt_hit = 0;
+    cnt_miss = 0;
 
-    strcat(logfilePath,"/logfile.txt");
-    FILE* fp; 
-
-    if((socket_fd = socket(PF_INET, SOCK_STREAM, 0))<0){
-        printf("Server: Can't open stream socket.");
-        return 0;
-    }
-
-    bzero((char*)&server_addr, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;                   //set socket address
-    server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
-    server_addr.sin_port = htons(PORTNO);
-    if(bind(socket_fd, (struct sockaddr *)&server_addr,sizeof(server_addr))<0){     //binding server
-        printf("Server: Can't bind local address.\n");
-        close(socket_fd);
-        return 0;
-    }
-    listen(socket_fd, 5);
-    signal(SIGCHLD,(void*)handler);
-
-    while(1)
+    sock_fd_serv = socket(AF_INET, SOCK_STREAM, 0); // create socket for IPv4, TCP
+    if (sock_fd_serv < 0)
     {
-        bzero((char*)&client_addr, sizeof(client_addr));
-        
-        struct in_addr inet_client_address;
-        char response_header[BUFFSIZE]={0, };
-        char response_message[BUFFSIZE] ={0, };
-        char tmp[BUFFSIZE] = {0,};
-        char method[20] = {0, };
-        char url[BUFFSIZE] ={0,};
-        char *tok = NULL;
-        char result[10]={0,};
+        printf("socket error\n");
+        return (0);
+    }
 
+    memset(&addr_serv, 0, sizeof(addr_serv)); // define socket addr of server side
+    addr_serv.sin_family = AF_INET;
+    addr_serv.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr_serv.sin_port = PORT_NUM;
 
-        len = sizeof(client_addr);
-        client_fd = accept(socket_fd, (struct sockaddr*)&client_addr, &len);        //accept client
+    int is_bind = bind(sock_fd_serv, (struct sockaddr *)&addr_serv, sizeof(addr_serv)); // asscociate an address with a socket
+    if (is_bind < 0)
+    {
+        printf("bind error\n");
+        close(sock_fd_serv);
+        return (0);
+    }
 
-        if(client_fd < 0)
+    int is_listen = listen(sock_fd_serv, 5);
+    if (is_listen < 0)
+    {
+        printf("listen error");
+        close(sock_fd_serv);
+        return (0);
+    }
+
+    signal(SIGCHLD, (void *)sig_handler); // prevent ended children becoming zombie state
+
+    while (1)
+    {
+        int tmp, is_hit;
+        char http_request[BUFFER_SIZE];
+        char *method, *url;
+
+        struct sockaddr_in inet_addr_client;
+        inet_addr_client.sin_addr.s_addr = addr_client.sin_addr.s_addr;
+
+        memset(&addr_client, 0, sizeof(addr_client));
+        tmp = sizeof(addr_client);
+        sock_fd_client = accept(sock_fd_serv, (struct sockaddr *)&addr_client, &tmp);
+        if (sock_fd_client < 0)
         {
-            printf("Server : accept failed  %d\n", getpid());
-            close(socket_fd);
-            return 0;
+            printf("accept error\n");
+            close(sock_fd_serv);
+            return (0);
         }
-        startTime = time(NULL);                                     //if connected with client, start timer
-        inet_client_address.s_addr = client_addr.sin_addr.s_addr;
-        u_int ipAddress=ntohl(client_addr.sin_addr.s_addr);
-        printf("[%d.%d.%d.%d : %d] client was connected\n", ipAddress>>24, (u_char)(ipAddress>>16),(u_char)(ipAddress>>8),(u_char)(ipAddress),client_addr.sin_port);
-        pid=fork();
-        
-    
-        if(pid==-1)
+
+        printf("[%s : %d] client was connected\n", inet_ntoa(inet_addr_client.sin_addr), addr_client.sin_port);
+
+        pid_t pid = fork();
+        if (pid < 0)
         {
-            close(client_fd);
-            close(socket_fd);
+            printf("fork error\n");
+            close(sock_fd_serv);
+            close(sock_fd_client);
             continue;
         }
-        if(pid==0)
+
+        if (pid == 0)
         {
-            read(client_fd, buf, BUFFSIZE);
-            strcpy(tmp, buf);
-            puts("================================================");
-            printf("Request from [%s : %d]\n", inet_ntoa(inet_client_address), client_addr.sin_port);
-            puts(buf);
-            puts("================================================");
-            tok = strtok(tmp, " ");
-            strcpy(method, tok);
-            if(strcmp(method, "GET")==0)
-            {
-                tok=strtok(NULL," ");
-                strcpy(url, tok);
-            }
-            strcpy(result,getUrl(countHit, countMiss, buf, homeDir, mkdirPath, logfilePath));      //getUrl and write logfile
-            if(strcmp("HIT",result)==0)                                     //if HIT
-            {
-                sprintf(response_message,
-                "<h1>HIT</h1><br>"
-                "Hello %s:%d<br>"
-                "%s<br>"
-                "kw2018202048", inet_ntoa(inet_client_address), client_addr.sin_port, url);
-            }
-            else{                                                           //if MISS
-                sprintf(response_message,
-                "<h1>MISS</h1><br>"
-                "Hello %s:%d<br>"
-                "%s<br>"
-                "kw2018202048", inet_ntoa(inet_client_address), client_addr.sin_port, url);
-            }
-            sprintf(response_header,
-                "HTTP/1.0 200 ok\r\n"
-                "Server:2018 simple web server\r\n"
-                "Content-length:%lu\r\n"
-                "Content-type:text/html\r\n\r\n", strlen(response_message));
-            write(client_fd, response_header, strlen(response_header));     //send header
-            write(client_fd, response_message, strlen(response_message));   //send message
-
-            printf("[%s : %d] client was disconnected\n", inet_ntoa(inet_client_address), client_addr.sin_port);
-            close(client_fd);
-
-            endTime=time(NULL); 
-            sprintf(systemMessage,"[Terminated] ServerPID : %d | run time: %d sec. #request hit : %d, miss : %d\n",getpid(), (int)(endTime-startTime),Hit, Miss);
-            fp = fopen(logfilePath,"a+"); 
-            fputs(systemMessage,fp);
-            fclose(fp);
-            exit(0);
+            read(sock_fd_client, http_request, BUFFER_SIZE);
+            puts("===================================================");
+            printf("Request from [%s : %d]\n", inet_ntoa(inet_addr_client.sin_addr), addr_client.sin_port);
+            puts(http_request);
+            puts("===================================================");
+            method = strtok(http_request, " ");
+            if (strcmp(method, "GET") == 0)
+                url = strtok(NULL, " ");
+            else
+                continue;
+            is_hit = check_url(&cnt_hit, &cnt_miss, url);
         }
-        close(client_fd);
-    }
-    close(socket_fd);
-    fclose(fp);
 
-    return 0;
+        break;
+    }
+}
+
+void sig_handler(void)
+{
+    while ((waitpid(-1, NULL, WNOHANG)) > 0)
+        ;
 }
