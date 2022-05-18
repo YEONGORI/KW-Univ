@@ -1,6 +1,6 @@
 NAME = proxy_cache
 
-CC = gcc
+cc = gcc
 
 CFLAGS = -lcrypto
 
@@ -8,12 +8,12 @@ SRCS = ./proxy_cache.c ./check_url.c
 
 OBJS = ${SRCS:.c=.o}
 
-all : ${NAME}
+all: ${NAME}
 
-%.o: %.c
-	${CC} -c $< -o $@ ${CFLAGS}
+%.o: %.cc
+	${CC} -c $< -o $@ {CFLAGS}
 
-${NAME} : ${OBJS}
+${NAME}: ${OBJS}
 	${CC} $^ -o $@ ${CFLAGS}
 
 clean:
@@ -22,6 +22,6 @@ clean:
 fclean:
 	rm -f ${NAME}
 
-re : fclean all
+re: fclean all
 
-.PHONY: all	clean	fclean	re
+.PHONY:	all	clean	fclean	re

@@ -1,19 +1,3 @@
-//////////////////////////////////////////////////////////////////////
-// File Name     : Server.c                                         //
-// Date          : 2022/05/04                                       //
-// Os            : Ubuntu 16.04 LTS 64bits                          //
-// Author        : Lee min Jae                                      //
-// Student ID    : 2018202048                                       //
-// ---------------------------------------------------------------- //
-// Title : System Programing Assignment #2-2 (proxy server)         //
-// Description : Make cache Directory of Proxy Server               //
-//               Make logfile Directory and file of Proxy Server    //
-//               Implement Hit & Miss                               //
-//               Main tasks are worked in a subprocess by fork()    //
-//               Send result of Hit & Miss to Browser               //
-//////////////////////////////////////////////////////////////////////
-
-
 #include <sys/socket.h>     //socket
 #include <netinet/in.h>
 #include <signal.h>
@@ -185,7 +169,7 @@ const char* getUrl(int* countHit, int* countMiss,char URL[], char homeDir[],char
         //write Hit info at logfile.txt
         t = time(NULL);
         date = localtime(&t);
-        sprintf(systemMessage,"[Hit] ServerPID : %d | %s/%s-[%d/%d/%d, %d:%d:%d]\n[Hit]%s\n",getpid(),firstThree, fileName,date->tm_year+1900,date->tm_mon+1,date->tm_mday,date->tm_hour,date->tm_min,date->tm_sec,inputUrl);
+        sprintf(systemMessage,"[Hit] ServerPID : %d | %s/%s-[%d/%d/%d, %d:%d:%d]\n[Hit]%s\n"pid(),firstThree, fileName,date->tm_year+1900,date->tm_mon+1,date->tm_mday,date->tm_hour,date->tm_min,date->tm_sec,inputUrl);
         fp= fopen(logfilePath,"a+");
         fputs(systemMessage, fp);           //write logfile
         fclose(fp);

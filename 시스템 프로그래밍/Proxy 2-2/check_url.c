@@ -43,6 +43,7 @@ char *sha1_hash(char *url, char *hashed_url)
         int i;
 
         SHA1(url, strlen(url), hashed_160bits); // hash url to 160 bits
+
         for (i = 0; i < sizeof(hashed_160bits); i++)
         {
                 sprintf(hashed_hex + i * 2, "%02x", hashed_160bits[i]); // Insert hashed url into the hashed_hex variable in hexadecimal
@@ -136,12 +137,13 @@ void makeFile(char *dir_path, char *file_name)
 //////////////////////////////////////////////////////////////////
 int check_url(int *hit_cnt, int *miss_cnt, char *url)
 {
-        char hashed_url[1024];
+        char *hashed_url;
         char home_dir[1024];
 
         char dir_name[256] = {"0"};
         char file_name[256] = {"0"}; // actual file name
-        int is_hit = 0;
+
+        int while_cnt = 0;
 
         FILE *f = NULL;
         DIR *dir = NULL; // directory pointer declaration
@@ -154,116 +156,131 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
         if (local_time == NULL)
         {
                 printf("plocal Error Occur!\n");
-                return 0;
+                return 1;
         }
 
         start_time = time(NULL); // Start recording program running time
 
+        while (1)
+        {
+                getHomeDir(home_dir); // Get Home Directory Path
 
-        getHomeDir(home_dir); // Get Home Directory Path
+                // Code to create cache or logfile directories if cache or logfile directories do not exist
+                // from here
+                dir = opendir(home_dir); // Open the Home Directory
+                int is_cache_exist = 0, is_logfile_exist = 0;
+                while ((dir_entry = readdir(dir)) != NULL)
+                { // Check that the cache and logfile directories are in the Home directory.
+                        if (strcmp(dir_entry->d_name, "cache") == 0)
+                        {
+                                is_cache_exist = 1;
+                        }
+                        if (strcmp(dir_entry->d_name, "logfile") == 0)
+                        {
+                                is_logfile_exist = 1;
+                        }
+                }
 
-        // Code to create cache or logfile directories if cache or logfile directories do not exist
-        // from here
-        dir = opendir(home_dir); // Open the Home Directory
-        int is_cache_exist = 0, is_logfile_exist = 0;
-        while ((dir_entry = readdir(dir)) != NULL)
-        { // Check that the cache and logfile directories are in the Home directory.
-                if (strcmp(dir_entry->d_name, "cache") == 0)
+                if (is_cache_exist == 0)
+                { // Make cache Directory
+                        char tmp[256];
+                        strcpy(tmp, home_dir);
+                        strcat(tmp, "/cache");
+                        makeDir(tmp);
+                }
+                if (is_logfile_exist == 0)
+                { // Make logfile Directory and logfile.txt File
+                        char tmp[256];
+                        strcpy(tmp, home_dir);
+                        strcat(tmp, "/logfile");
+                        makeDir(tmp);
+                        makeFile(tmp, "logfile.txt");
+                }
+                // to here
+
+                if (while_cnt == 0)
+                { // open logfile.txt in the first loop only
+                        char tmp[1024];
+                        strcpy(tmp, home_dir);
+                        strcat(tmp, "/logfile/logfile.txt");
+                        f = fopen(tmp, "a");
+                }
+
+                if (strcmp(url, "bye") == 0)
                 {
-                        is_cache_exist = 1;
+                        free(hashed_url); // deallocation
+                        free(url);
+
+                        end_time = time(NULL); // end of running time record
+                        int running_time = (int)(end_time - start_time);
+
+                        fprintf(f, "[Terminated] run time: %d sec. #request hit : %d, miss : %d \n", running_time, *hit_cnt, *miss_cnt);
+                        if (while_cnt > 0)
+                                fclose(f);
+                        return 0;
                 }
-                if (strcmp(dir_entry->d_name, "logfile") == 0)
+
+                sha1_hash(url, hashed_url); // url hashing
+
+                for (int i = 0; i < 3; i++)
                 {
-                        is_logfile_exist = 1;
+                        dir_name[i] = *(hashed_url + i);
                 }
-        }
+                strcat(home_dir, "/cache/");
+                strcat(home_dir, dir_name);
 
-        if (is_cache_exist == 0)
-        { // Make cache Directory
-                char tmp[256];
-                strcpy(tmp, home_dir);
-                strcat(tmp, "/cache");
-                makeDir(tmp);
-        }
-        if (is_logfile_exist == 0)
-        { // Make logfile Directory and logfile.txt File
-                char tmp[256];
-                strcpy(tmp, home_dir);
-                strcat(tmp, "/logfile");
-                makeDir(tmp);
-                makeFile(tmp, "logfile.txt");
-        }
-        // to here
-
-
-        // open logfile.txt
-        char tmp2[1024];
-        strcpy(tmp2, home_dir);
-        strcat(tmp2, "/logfile/logfile.txt");
-        f = fopen(tmp2, "a");
-
-        sha1_hash(url, hashed_url); // url hashing
-
-        for (int i = 0; i < 3; i++)
-        {
-                dir_name[i] = *(hashed_url + i);
-        }
-        strcat(home_dir, "/cache/");
-        strcat(home_dir, dir_name);
-
-        for (int i = 3; (int)*(hashed_url + i) != 0; i++)
-        {
-                file_name[i - 3] = *(hashed_url + i);
-        }
-
-        dir = opendir(home_dir);
-        if (dir == NULL)
-        {
-                time(&current_time);
-                local_time = localtime(&current_time); // current time reinitialization
-
-                fprintf(f, "[MISS] %s - [%d/%d/%d, %d:%d:%d] \n", url, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec); // write the log file
-
-                makeDir(home_dir);
-                makeFile(home_dir, file_name);
-                *miss_cnt++;
-        }
-        else
-        {
-                for (file = readdir(dir); strlen(file->d_name) < 3; file = readdir(dir))
-                { // Search for files stored under hashed url names
-                        continue;
+                for (int i = 3; (int)*(hashed_url + i) != 0; i++)
+                {
+                        file_name[i - 3] = *(hashed_url + i);
                 }
 
-                if (strcmp(file->d_name, file_name) == 0)
+                dir = opendir(home_dir);
+                if (dir == NULL)
                 {
                         time(&current_time);
-                        local_time = localtime(&current_time);
+                        local_time = localtime(&current_time); // current time reinitialization
 
-                        fprintf(f, "[Hit] %s/ %s - [%d/%d/%d, %d:%d:%d] \n", dir_name, file->d_name, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
-                        fprintf(f, "[Hit] %s \n", url);
-                        is_hit = 1;
-                        *hit_cnt++;
-                }
-                else
-                { // If only the directory name is the same but the file name is different
-                        time(&current_time);
-                        local_time = localtime(&current_time);
-
-                        fprintf(f, "[MISS] %s - [%d/%d/%d, %d:%d:%d]\n", url, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+                        fprintf(f, "[MISS] %s - [%d/%d/%d, %d:%d:%d] \n", url, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec); // write the log file
 
                         makeDir(home_dir);
                         makeFile(home_dir, file_name);
-                        *miss_cnt++;
+                        miss_cnt++;
                 }
+                else
+                {
+                        for (file = readdir(dir); strlen(file->d_name) < 3; file = readdir(dir))
+                        { // Search for files stored under hashed url names
+                                continue;
+                        }
+
+                        if (strcmp(file->d_name, file_name) == 0)
+                        {
+                                time(&current_time);
+                                local_time = localtime(&current_time);
+
+                                fprintf(f, "[Hit] %s/ %s - [%d/%d/%d, %d:%d:%d] \n", dir_name, file->d_name, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+                                fprintf(f, "[Hit] %s \n", url);
+
+                                hit_cnt++;
+                        }
+                        else
+                        { // If only the directory name is the same but the file name is different
+                                time(&current_time);
+                                local_time = localtime(&current_time);
+
+                                fprintf(f, "[MISS] %s - [%d/%d/%d, %d:%d:%d]\n", url, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+
+                                makeDir(home_dir);
+                                makeFile(home_dir, file_name);
+                                miss_cnt++;
+                        }
+                }
+                closedir(dir);
+
+                free(hashed_url); // memory deallocation
+                free(url);
+                while_cnt++;
         }
-        closedir(dir);
 
-        end_time = time(NULL); // end of running time record
-        int running_time = (int)(end_time - start_time);
-
-        fprintf(f, "[Terminated] run time: %d sec. #request hit : %d, miss : %d \n", running_time, *hit_cnt, *miss_cnt);
-        fclose(f);
-
-        return (is_hit);
+        return 0;
 }

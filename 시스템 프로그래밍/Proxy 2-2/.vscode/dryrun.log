@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/yeongori/workspace/KW-Univ/시스템 프로그래밍/Proxy 2-1'
+gcc -o proxy_cache proxy_cache.c -lcrypto -g
+make: Leaving directory '/home/yeongori/workspace/KW-Univ/시스템 프로그래밍/Proxy 2-1'
+ 
