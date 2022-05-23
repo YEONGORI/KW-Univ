@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri May 13 16:09:17 2022
+# Make data base, printed on Mon May 23 10:02:06 2022
 
 # Variables
 
@@ -33,9 +33,9 @@ CURDIR := /home/yeongori/workspace/KW-Univ/시스템 프로그래밍
 # makefile
 SHELL = /bin/sh
 # environment
-VSCODE_NLS_CONFIG = {"locale":"ko","availableLanguages":{"*":"ko"},"_languagePackId":"738ac08552cca045871a73764b8c446f.ko","_translationsConfigFile":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko/da15b6fd3ef856477bf6f4fb29ba1b7af717770d","_corruptedFile":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko/corrupted.info","_languagePackSupport":true}
+VSCODE_NLS_CONFIG = {"locale":"ko","availableLanguages":{"*":"ko"},"_languagePackId":"738ac08552cca045871a73764b8c446f.ko","_translationsConfigFile":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5","_corruptedFile":"/root/.vscode-server/data/clp/738ac08552cca045871a73764b8c446f.ko/corrupted.info","_languagePackSupport":true}
 # environment
-_ = /root/.vscode-server/bin/da15b6fd3ef856477bf6f4fb29ba1b7af717770d/node
+_ = /root/.vscode-server/bin/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5/node
 # makefile
 MAKEFILE_LIST := 
 # 'override' directive
@@ -47,13 +47,13 @@ VSCODE_CWD = /mnt/c/Users/yeongori/AppData/Local/Programs/Microsoft VS Code
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /root/.vscode-server/bin/da15b6fd3ef856477bf6f4fb29ba1b7af717770d/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Java/jdk-18/bin:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Program Files (x86)/VMware/VMware Player/bin/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Git/cmd:/mnt/c/MinGW/bin:/mnt/c/Users/yeongori/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/yeongori/AppData/Local/Programs/Microsoft VS Code/bin
+PATH = /root/.vscode-server/bin/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Java/jdk-18/bin:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Program Files (x86)/VMware/VMware Player/bin/:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Git/cmd:/mnt/c/MinGW/bin:/mnt/c/Users/yeongori/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/yeongori/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/iverilog/bin:/mnt/c/iverilog/gtkwave/bin:/mnt/c/Program Files/JetBrains/IntelliJ IDEA Community Edition 2022.1.1/bin
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-51f1972d-5b2d-46fc-bb3a-5591049f70ad.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-820405d8-2172-46a7-89bf-6afffd492262.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -67,7 +67,7 @@ PWD = /home/yeongori/workspace/KW-Univ/시스템 프로그래밍
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/17090_interop
+WSL_INTEROP = /run/WSL/11_interop
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -75,7 +75,7 @@ HOME = /root
 # environment
 LOGNAME = root
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 ZSH = /root/.oh-my-zsh
 # environment
@@ -103,7 +103,7 @@ LESS = -R
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
-VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/yeongori/.vscode/extensions/ms-vscode-remote.remote-wsl-0.66.2
+VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/yeongori/.vscode/extensions/ms-vscode-remote.remote-wsl-0.66.3
 # default
 MAKE_COMMAND := make
 # environment
@@ -159,9 +159,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 2064, inode 70994): 8 files, no impossibilities.
+# . (device 2064, inode 70994): 10 files, no impossibilities.
 
-# 8 files, no impossibilities in 1 directories.
+# 10 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -169,6 +169,7 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Files
 
+ 
 # Not a target:
 all:
 #  Command line target.
@@ -211,12 +212,12 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 16 / storage = 150 B / avg = 9 B
-# current buf: size = 8162 B / used = 150 B / count = 16 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 18 / storage = 170 B / avg = 9 B
+# current buf: size = 8162 B / used = 170 B / count = 18 / avg = 9 B
 
-# strcache performance: lookups = 19 / hit rate = 15%
+# strcache performance: lookups = 21 / hit rate = 14%
 # hash-table stats:
-# Load=16/8192=0%, Rehash=0, Collisions=1/19=5%
-# Finished Make data base on Fri May 13 16:09:17 2022
+# Load=18/8192=0%, Rehash=0, Collisions=1/21=5%
+# Finished Make data base on Mon May 23 10:02:06 2022
 
  
