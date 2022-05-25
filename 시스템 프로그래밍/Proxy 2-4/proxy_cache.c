@@ -16,67 +16,12 @@
 #define PORT_NUM 39999 // port number
 #define BUFF_SIZE 1024  // buffer size
 
-int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *tokenized_req);
+int check_url(int *hit_cnt, int *miss_cnt, int *process_cnt, char *url, char *http_req);
 void chld_handler(void);
 void alrm_handler(void);
 void int_handler(void);
 char *get_ip_handler(char *addr);
 char *getHomeDir(char *home);
-
-FILE *get_logfile() {
-        int is_cache_exist = 0, is_logfile_exist = 0;
-        char home_dir[1024];
-        char dir_name[256] = {"0"};
-        char file_name[256] = {"0"}; // actual file name
-
-        FILE *f = NULL;
-        DIR *dir = NULL; // directory pointer declaration
-        struct dirent *dir_entry = NULL, *file = NULL;
-
-        start_time = time(NULL); // Start recording program running time
-
-        getHomeDir(home_dir); // Get Home Directory Path
-
-        // Code to create cache or logfile directories if cache or logfile directories do not exist
-        // from here
-        dir = opendir(home_dir); // Open the Home Directory
-
-        while ((dir_entry = readdir(dir)) != NULL)
-        { // Check that the cache and logfile directories are in the Home directory.
-                if (strcmp(dir_entry->d_name, "cache") == 0)
-                {
-                    is_cache_exist = 1;
-                }
-                if (strcmp(dir_entry->d_name, "logfile") == 0)
-                {
-                        is_logfile_exist = 1;
-                }
-        }
-
-        if (is_cache_exist == 0)
-        { // Make cache Directory
-                char tmp[256];
-                strcpy(tmp, home_dir);
-                strcat(tmp, "/cache");
-                makeDir(tmp);
-        }
-        if (is_logfile_exist == 0)
-        { // Make logfile Directory and logfile.txt File
-                char tmp[256];
-                strcpy(tmp, home_dir);
-                strcat(tmp, "/logfile");
-                makeDir(tmp);
-                makeFile(tmp, "logfile.txt");
-        }
-        // to here
-
-        // open logfile.txt
-        char tmp2[1024];
-        strcpy(tmp2, home_dir);
-        strcat(tmp2, "/logfile/logfile.txt");
-        f = fopen(tmp2, "w+");
-        return (f);
-}
 
 int main()
 {
@@ -91,18 +36,6 @@ int main()
     miss_cnt = 0;
     process_cnt = 0;
     opt_val = 1;
-
-    time_t current_time, start_time, end_time;
-    struct tm *local_time;
-    time(&current_time);
-    local_time = localtime(&current_time); // Calculate the seconds that have passed so far and save them as local time in struct tm format
-    if (local_time == NULL)
-    {
-            printf("plocal Error Occur!\n");
-            return 0;
-    }
-
-    FILE *f = get_logfile();
 
     serv_fd = socket(PF_INET, SOCK_STREAM, 0);
     if (serv_fd < 0) // create socket. IPv4 Internet protocal + TCP connection
@@ -193,7 +126,7 @@ int main()
                 printf("Server : Can't open stream socket\n");
                 return (0);
             }
-            tok = strtok(url, "://");
+            tok = strtok(tok, "://");
             tok = strtok(NULL, "/");
             ip_addr = get_ip_handler(tok);
             bzero((char *)&addr_sock, sizeof(addr_sock)); // define socket addr of server side
@@ -206,8 +139,9 @@ int main()
                 printf("Server : connect failed\n");
                 close(sock_fd);
             }
+            is_hit = check_url(&hit_cnt, &miss_cnt, &process_cnt, url, http_req);
 
-            is_hit = check_url(&hit_cnt, &miss_cnt, & process_cnt, url);
+        
             if (is_hit == 1)
                 ;
             else
@@ -249,6 +183,7 @@ void alrm_handler(void)
 
 void int_handler(void)
 {
+    printf("\n\nTEST\n\n");
     exit(0);
 }
 
