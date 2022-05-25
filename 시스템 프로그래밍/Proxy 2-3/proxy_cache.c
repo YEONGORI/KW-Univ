@@ -160,7 +160,6 @@ int main()
                     close(sock_fd);
                 }
                 alarm(10);
-                sleep(15);
                 if (read(sock_fd, buf, BUFFER_SIZE) > 0)
                     alarm(0);
             }
