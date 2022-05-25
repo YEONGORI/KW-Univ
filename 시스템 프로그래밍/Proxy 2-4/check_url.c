@@ -105,7 +105,7 @@ void makeDir(char *dir_path)
 // Purpose: To create directories and files with the desired	//
 //	    path and name,					//
 //////////////////////////////////////////////////////////////////
-void makeFile(char *dir_path, char *file_name)
+char *makeFile(char *dir_path, char *file_name)
 {
         char file_name_ow[256]; // overwrite to prevent null terminator from being included in file names
         strcpy(file_name_ow, file_name);
@@ -116,10 +116,10 @@ void makeFile(char *dir_path, char *file_name)
         if (is_file_created == -1)
         {
                 printf("creat Error Occur!\n");
-                return;
+                return 0;
         }
 
-        return;
+        return dir_path;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -134,7 +134,7 @@ void makeFile(char *dir_path, char *file_name)
 //	    the logfile and exit the program when all of them 	//
 //	    are finished.					//
 //////////////////////////////////////////////////////////////////
-int check_url(int *hit_cnt, int *miss_cnt, char *url)
+int check_url(int *hit_cnt, int *miss_cnt, int *process_cnt, char *url, char *http_req)
 {
         char hashed_url[1024];
         char home_dir[1024];
@@ -147,7 +147,7 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
         DIR *dir = NULL; // directory pointer declaration
         struct dirent *dir_entry = NULL, *file = NULL;
 
-        time_t current_time, start_time, end_time;
+        time_t current_time;
         struct tm *local_time;
         time(&current_time);
         local_time = localtime(&current_time); // Calculate the seconds that have passed so far and save them as local time in struct tm format
@@ -156,9 +156,6 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
                 printf("plocal Error Occur!\n");
                 return 0;
         }
-
-        start_time = time(NULL); // Start recording program running time
-
 
         getHomeDir(home_dir); // Get Home Directory Path
 
@@ -195,12 +192,11 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
         }
         // to here
 
-
         // open logfile.txt
         char tmp2[1024];
         strcpy(tmp2, home_dir);
         strcat(tmp2, "/logfile/logfile.txt");
-        f = fopen(tmp2, "w+");
+        f = fopen(tmp2, "a");
 
         sha1_hash(url, hashed_url); // url hashing
 
@@ -219,13 +215,17 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
         dir = opendir(home_dir);
         if (dir == NULL)
         {
+                char *tmp;
                 time(&current_time);
                 local_time = localtime(&current_time); // current time reinitialization
 
                 fprintf(f, "[MISS] %s - [%d/%d/%d, %d:%d:%d] \n", url, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec); // write the log file
 
                 makeDir(home_dir);
-                makeFile(home_dir, file_name);
+                tmp = makeFile(home_dir, file_name);
+                FILE *fp = fopen(tmp, "w");
+                fputs(http_req, fp);
+                fclose(fp);
                 *miss_cnt++;
         }
         else
@@ -247,20 +247,23 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
                 }
                 else
                 { // If only the directory name is the same but the file name is different
+                        char *tmp;
                         time(&current_time);
                         local_time = localtime(&current_time);
 
                         fprintf(f, "[MISS] %s - [%d/%d/%d, %d:%d:%d]\n", url, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
 
                         makeDir(home_dir);
-                        makeFile(home_dir, file_name);
+
+                        tmp = makeFile(home_dir, file_name);
+                        FILE *fp = fopen(tmp, "w");
+                        fputs(http_req, fp);
+                        fclose(fp);
+
                         *miss_cnt++;
                 }
         }
         closedir(dir);
-
-        end_time = time(NULL); // end of running time record
-        int running_time = (int)(end_time - start_time);
         fclose(f);
         return (is_hit);
 }

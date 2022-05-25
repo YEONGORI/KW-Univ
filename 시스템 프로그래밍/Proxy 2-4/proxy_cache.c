@@ -4,19 +4,24 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <pwd.h>
+#include <dirent.h>
+
 
 #define PORT_NUM 39999 // port number
 #define BUFF_SIZE 1024  // buffer size
 
-int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *tokenized_req);
+int check_url(int *hit_cnt, int *miss_cnt, int *process_cnt, char *url, char *http_req);
 void chld_handler(void);
 void alrm_handler(void);
 void int_handler(void);
 char *get_ip_handler(char *addr);
+char *getHomeDir(char *home);
 
 int main()
 {
@@ -32,7 +37,8 @@ int main()
     process_cnt = 0;
     opt_val = 1;
 
-    if (socket(PF_INET, SOCK_STREAM, 0) < 0) // create socket. IPv4 Internet protocal + TCP connection
+    serv_fd = socket(PF_INET, SOCK_STREAM, 0);
+    if (serv_fd < 0) // create socket. IPv4 Internet protocal + TCP connection
     {
         printf("Server : Can't open stream socket\n");
         return (0);
@@ -41,11 +47,12 @@ int main()
     memset((char *)&serv_addr, 0, sizeof(serv_addr)); // define socket addr of server side
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); // convert host_byte_order to network_byte_order
-    serv_addr.sin_port = htons(PORT_NUM);
+    serv_addr.sin_port = htons(PORT_NUM); // convert short_integer to networ_byte_order
 
     setsockopt(serv_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)); // setting details for sockets
 
-    if (bind(serv_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr) < 0))
+    int is_bind = bind(serv_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)); // bind to server_address and server_fd
+    if (is_bind < 0)
     {
         printf("Server : Can't bind local address\n");
         close(serv_fd);
@@ -58,7 +65,9 @@ int main()
     signal(SIGINT, (void *)int_handler);
     while (1)
     {
-        int len, is_hit;
+        struct sockaddr_in addr_sock;
+
+        int len, is_hit, sock_fd;
         char *tok = NULL, *ip_addr;
         char http_req[BUFF_SIZE];
         char tmp[BUFF_SIZE] = {
@@ -73,12 +82,6 @@ int main()
         char method[BUFF_SIZE] = {
             0,
         };
-        char res_header[BUFF_SIZE] = {
-            0,
-        };
-        char res_msg[BUFF_SIZE] = {
-            0,
-        };
 
         len = sizeof(cli_addr);
         memset((char *)&cli_addr, 0, len); // initialize memory
@@ -90,8 +93,6 @@ int main()
             close(serv_fd);
         }
 
-        memset(res_header, 0, sizeof(res_header));
-        memset(res_msg, 0, sizeof(res_msg));
 
         printf("[%s : %d] client was connected\n", inet_ntoa(cli_addr.sin_addr), cli_addr.sin_port);
 
@@ -112,72 +113,55 @@ int main()
             puts("===================================================");
             tok = strtok(tmp, " ");
             strcpy(method, tok);
+
             if (strcmp(method, "GET") == 0)
             {
                 tok = strtok(NULL, " ");
                 strcpy(url, tok);
             }
 
-            is_hit = check_url(&hit_cnt, &miss_cnt, & process_cnt, url);
-            
-            if (is_hit == 1)
+            sock_fd = socket(PF_INET, SOCK_STREAM, 0); // create socket for IPv4, TCP
+            if (sock_fd < 0)
             {
-                sprintf(res_msg,
-                        "<h1>HIT</h1><br>"
-                        "Hello %s:%d<br>"
-                        "%s<br>"
-                        "kw2018202076",
-                        inet_ntoa(cli_addr.sin_addr), cli_addr.sin_port, url);
+                printf("Server : Can't open stream socket\n");
+                return (0);
             }
+            tok = strtok(tok, "://");
+            tok = strtok(NULL, "/");
+            ip_addr = get_ip_handler(tok);
+            bzero((char *)&addr_sock, sizeof(addr_sock)); // define socket addr of server side
+            addr_sock.sin_family = AF_INET;
+            addr_sock.sin_addr.s_addr = inet_addr(ip_addr);
+            addr_sock.sin_port = htons(80);
+            int is_connect = connect(sock_fd, (struct sockaddr *)&addr_sock, sizeof(addr_sock));
+            if (is_connect < 0)
+            {
+                printf("Server : connect failed\n");
+                close(sock_fd);
+            }
+            is_hit = check_url(&hit_cnt, &miss_cnt, &process_cnt, url, http_req);
+
+        
+            if (is_hit == 1)
+                ;
             else
             {
-                sprintf(res_msg,
-                        "<h1>MISS</h1><br>"
-                        "Hello %s:%d<br>"
-                        "%s<br>"
-                        "kw2018202076",
-                        inet_ntoa(cli_addr.sin_addr), cli_addr.sin_port, url);
-
-                int sock_fd = socket(PF_INET, SOCK_STREAM, 0); // create socket for IPv4, TCP
-                if (sock_fd < 0)
-                {
-                    printf("Server : Can't open stream socket\n");
-                    return (0);
-                }
-                tok = strtok(url, "://");
-                tok = strtok(NULL, "/");
-                ip_addr = get_ip_handler(tok);
-                struct sockaddr_in addr_sock;
-                bzero((char *)&addr_sock, sizeof(addr_sock)); // define socket addr of server side
-                addr_sock.sin_family = AF_INET;
-                addr_sock.sin_addr.s_addr = inet_addr(ip_addr);
-                addr_sock.sin_port = htons(80);
-
-                int is_connect = connect(sock_fd, (struct sockaddr *)&addr_sock, sizeof(addr_sock));
-                if (is_connect < 0)
-                {
-                    printf("Server : connect failed\n");
-                    close(sock_fd);
-                }
                 alarm(10);
                 if (read(sock_fd, buf, BUFF_SIZE) > 0)
                     alarm(0);
             }
-            sprintf(res_header,
-                    "HTTP/1.0 200 ok\r\n"
-                    "Server:2018 simple web server\r\n"
-                    "Content-length:%lu\r\n"
-                    "Content-type:text/html\r\n\r\n",
-                    strlen(res_msg));
-            write(cli_fd, res_header, strlen(res_header));
-            write(cli_fd, res_msg, strlen(res_msg));
-            write(cli_fd, http_req, len);
+
+            send(sock_fd, http_req, strlen(http_req), 0);
+            while ((len = recv(sock_fd, tmp, BUFF_SIZE - 1, 0)) > 0) {
+                tmp[len] = '\0';
+                write(cli_fd, tmp, len);
+            }
 
             printf("[%s : %d] client was disconnected\n\n", inet_ntoa(cli_addr.sin_addr), cli_addr.sin_port);
 
-            bzero(http_req, sizeof(http_req));
-            bzero(tmp, sizeof(tmp));
-            bzero(url, sizeof(url));
+            memset(http_req, 0, sizeof(http_req));
+            memset(tmp, 0, sizeof(tmp));
+            memset(url, 0, sizeof(url));
 
             close(cli_fd);
         }
@@ -199,6 +183,7 @@ void alrm_handler(void)
 
 void int_handler(void)
 {
+    printf("\n\nTEST\n\n");
     exit(0);
 }
 

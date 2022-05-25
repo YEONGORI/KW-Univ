@@ -134,7 +134,7 @@ void makeFile(char *dir_path, char *file_name)
 //	    the logfile and exit the program when all of them 	//
 //	    are finished.					//
 //////////////////////////////////////////////////////////////////
-int check_url(int *hit_cnt, int *miss_cnt, char *url)
+int check_url(int *hit_cnt, int *miss_cnt, int process_cnt, char *url)
 {
         char hashed_url[1024];
         char home_dir[1024];
@@ -200,7 +200,7 @@ int check_url(int *hit_cnt, int *miss_cnt, char *url)
         char tmp2[1024];
         strcpy(tmp2, home_dir);
         strcat(tmp2, "/logfile/logfile.txt");
-        f = fopen(tmp2, "a");
+        f = fopen(tmp2, "w+");
 
         sha1_hash(url, hashed_url); // url hashing
 
