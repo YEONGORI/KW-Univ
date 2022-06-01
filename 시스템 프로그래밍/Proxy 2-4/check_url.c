@@ -134,7 +134,7 @@ char *makeFile(char *dir_path, char *file_name)
 //	    the logfile and exit the program when all of them 	//
 //	    are finished.					//
 //////////////////////////////////////////////////////////////////
-int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *url, char *http_req)
+int check_url(int *hit_cnt, int *miss_cnt, int *process_cnt, char *url, char *http_req)
 {
         char hashed_url[1024];
         char home_dir[1024];
@@ -191,7 +191,6 @@ int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *url, char *ht
                 makeFile(tmp, "logfile.txt");
         }
         // to here
-
 
         // open logfile.txt
         char tmp2[1024];

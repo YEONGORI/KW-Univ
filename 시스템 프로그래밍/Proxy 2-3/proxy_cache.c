@@ -144,9 +144,9 @@ int main()
                     printf("Server : Can't open stream socket\n");
                     return (0);
                 }
-                char *tmp2 = strtok(url, "://");
-                tmp2 = strtok(NULL, "/");
-                char *IPAddr = getIPAddr(tmp2);
+                tok = strtok(url, "://");
+                tok = strtok(NULL, "/");
+                char *IPAddr = getIPAddr(tok);
                 struct sockaddr_in addr_sock;
                 bzero((char *)&addr_sock, sizeof(addr_sock)); // define socket addr of server side
                 addr_sock.sin_family = AF_INET;
