@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon May 30 22:13:50 2022
+# Make data base, printed on Sun Jun  5 23:39:59 2022
 
 # Variables
 
@@ -29,7 +29,7 @@ VSCODE_LOG_NATIVE = false
 # automatic
 @F = $(notdir $@)
 # makefile
-CURDIR := /home/yeongori/workspace/KW-Univ/시스템 프로그래밍
+CURDIR := /home/yeongori/workspace/KW-Univ
 # makefile
 SHELL = /bin/sh
 # environment
@@ -53,7 +53,7 @@ LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-3859e5af-233d-43c0-88ad-64a8a89fe452.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-d349d527-3332-4a70-b240-14c1acb29c2f.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -63,7 +63,7 @@ LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
-PWD = /home/yeongori/workspace/KW-Univ/시스템 프로그래밍
+PWD = /home/yeongori/workspace/KW-Univ
 # default
 .LOADED := 
 # environment
@@ -159,9 +159,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 2064, inode 70994): 11 files, no impossibilities.
+# . (device 2064, inode 65785): 8 files, no impossibilities.
 
-# 11 files, no impossibilities in 1 directories.
+# 8 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -211,12 +211,12 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 19 / storage = 180 B / avg = 9 B
-# current buf: size = 8162 B / used = 180 B / count = 19 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 16 / storage = 198 B / avg = 12 B
+# current buf: size = 8162 B / used = 198 B / count = 16 / avg = 12 B
 
-# strcache performance: lookups = 22 / hit rate = 13%
+# strcache performance: lookups = 19 / hit rate = 15%
 # hash-table stats:
-# Load=19/8192=0%, Rehash=0, Collisions=1/22=5%
-# Finished Make data base on Mon May 30 22:13:50 2022
+# Load=16/8192=0%, Rehash=0, Collisions=1/19=5%
+# Finished Make data base on Sun Jun  5 23:39:59 2022
 
  
