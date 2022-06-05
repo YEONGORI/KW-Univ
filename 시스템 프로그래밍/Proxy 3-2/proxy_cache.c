@@ -18,7 +18,7 @@
 #define PORT_NUM 39999 // port number
 #define BUFF_SIZE 1024 // buffer size
 
-int check_url(int *hit_cnt, int *miss_cnt, int *process_cnt, char *url, char *http_req);
+int check_url(char *url, char *http_req);
 void chld_handler(void);
 void alrm_handler(void);
 void int_handler(void);
@@ -27,7 +27,10 @@ char *getHomeDir(char *home);
 void repeat(int semid);
 int p(int semid);
 int v(int semid);
-void *thread_routine(int pid);
+void *thread_routine(void *arg);
+
+char http_req[BUFF_SIZE];
+int t_hit;
 
 int main()
 {
@@ -37,8 +40,7 @@ int main()
     struct sockaddr_in serv_addr, cli_addr;
 
     pid_t pid;
-    union semun
-    {
+    union semun {
         int val;
         struct semid_ds *buf;
         unsigned short int *array;
@@ -90,12 +92,10 @@ int main()
     signal(SIGINT, (void *)int_handler);
     while (1)
     {
-        pthread_t tid;
         struct sockaddr_in addr_sock;
 
-        int len, is_hit, sock_fd;
+        int len, is_hit = 0, sock_fd;
         char *tok = NULL, *ip_addr;
-        char http_req[BUFF_SIZE];
         char tmp[BUFF_SIZE] = {
             0,
         };
@@ -128,15 +128,16 @@ int main()
 
         if (pid == 0)
         {
+            pthread_t tid;
 
             printf("*PID# %d is waiting for the semaphore.\n", getpid());
             p(semid); // start critical zone
-            // sleep(5);
             printf("*PID# %d is in the critical zone.\n", getpid());
-            if (pthread_create(&tid, NULL, thread_routine((int)getpid()), NULL) < 0)
-            {
+            if (pthread_create(&tid, NULL, thread_routine, (void *)url) < 0) // create thread
                 printf("Thread: create failed\n");
-            }
+            
+            printf("*PID# %d create the *TID# %u.\n", getpid(), (unsigned int)tid);
+
 
             len = read(cli_fd, http_req, BUFF_SIZE); // Read data from clinet_fd and store it in variables
             strcpy(tmp, http_req);
@@ -147,7 +148,7 @@ int main()
                 tok = strtok(NULL, " ");
                 strcpy(url, tok);
             }
-
+            
             sock_fd = socket(PF_INET, SOCK_STREAM, 0); // create socket for IPv4, TCP
             if (sock_fd < 0)
             {
@@ -158,6 +159,7 @@ int main()
             tok = strtok(http_req, " ");
             tok = strtok(NULL, "//");
             tok = strtok(NULL, "/");
+
             ip_addr = get_ip_handler(tok);
 
             bzero((char *)&addr_sock, sizeof(addr_sock)); // define socket addr of server side
@@ -170,14 +172,15 @@ int main()
                 printf("Server : connect failed\n");
                 close(sock_fd);
             }
-            is_hit = check_url(&hit_cnt, &miss_cnt, &process_cnt, url, http_req);
-
+            pthread_join(tid, (void *)&is_hit); // Wait for the thread to end
+            printf("*TID# %u is exited.\n", (unsigned int)tid);
             v(semid); // end critical zone
             printf("*PID# %d exited the critical zone.\n", getpid());
             if (is_hit == 1)
-                ;
+                hit_cnt++;
             else
             {
+                miss_cnt++;
                 alarm(10);
                 if (read(sock_fd, buf, BUFF_SIZE) > 0)
                     alarm(0);
@@ -201,12 +204,10 @@ int main()
     }
 }
 
-void *thread_routine(int pid)
-{
-    pthread_t tid;
-
-    tid = pthread_self();
-    printf("*PID# %d create the  *TID# %d\n", pid, tid);
+void *thread_routine(void *arg)
+{ // thread route to record log files
+    t_hit = check_url(arg, http_req); // write logfile in thread routine
+    return (void*)&t_hit;
 }
 
 int p(int semid)
@@ -265,10 +266,8 @@ char *get_ip_handler(char *addr)
 {
     struct hostent *hent;
     char *haddr;
-    int len = strlen(addr);
 
     if ((hent = (struct hostent *)gethostbyname(addr)) != NULL)
         haddr = inet_ntoa(*((struct in_addr *)hent->h_addr_list[0]));
-
     return haddr;
 }

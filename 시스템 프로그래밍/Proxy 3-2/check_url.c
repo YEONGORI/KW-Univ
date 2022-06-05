@@ -134,7 +134,7 @@ char *makeFile(char *dir_path, char *file_name)
 //	    the logfile and exit the program when all of them 	//
 //	    are finished.					//
 //////////////////////////////////////////////////////////////////
-int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *url, char *http_req)
+int check_url(char *url, char *http_req)
 {
         char hashed_url[1024];
         char home_dir[1024];
@@ -227,7 +227,6 @@ int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *url, char *ht
                 FILE *fp = fopen(tmp, "w");
                 fputs(http_req, fp);
                 fclose(fp);
-                *miss_cnt++;
         }
         else
         {
@@ -244,7 +243,6 @@ int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *url, char *ht
                         fprintf(f, "[Hit] %s/ %s - [%d/%d/%d, %d:%d:%d] \n", dir_name, file->d_name, 1900 + local_time->tm_year, local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
                         fprintf(f, "[Hit] %s \n", url);
                         is_hit = 1;
-                        *hit_cnt++;
                 }
                 else
                 { // If only the directory name is the same but the file name is different
@@ -260,8 +258,6 @@ int check_url(int *hit_cnt, int *miss_cnt, int* process_cnt, char *url, char *ht
                         FILE *fp = fopen(tmp, "w");
                         fputs(http_req, fp);
                         fclose(fp);
-
-                        *miss_cnt++;
                 }
         }
         closedir(dir);
