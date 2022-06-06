@@ -15,7 +15,7 @@
 #include <dirent.h>
 
 #define PORT_NUM 39999 // port number
-#define BUFF_SIZE 1024  // buffer size
+#define BUFF_SIZE 1024 // buffer size
 
 int check_url(int *hit_cnt, int *miss_cnt, int *process_cnt, char *url, char *http_req);
 void chld_handler(void);
@@ -35,7 +35,8 @@ int main()
     struct sockaddr_in serv_addr, cli_addr;
 
     pid_t pid;
-    union semun {
+    union semun
+    {
         int val;
         struct semid_ds *buf;
         unsigned short int *array;
@@ -46,13 +47,15 @@ int main()
     process_cnt = 0;
     opt_val = 1;
 
-    if ((semid = semget((key_t)PORT_NUM, 1, IPC_CREAT|0666)) == -1) { // create semaphore
+    if ((semid = semget((key_t)PORT_NUM, 1, IPC_CREAT | 0666)) == -1)
+    { // create semaphore
         perror("semget failed");
         exit(1);
     }
 
     arg.val = 1; // set semaphore value to 1
-    if ((semctl(semid, 0, SETVAL, arg)) == -1) { // set the initial value of the semaphore
+    if ((semctl(semid, 0, SETVAL, arg)) == -1)
+    { // set the initial value of the semaphore
         perror("semctl failed");
         exit(1);
     }
@@ -67,7 +70,7 @@ int main()
     memset((char *)&serv_addr, 0, sizeof(serv_addr)); // define socket addr of server side
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); // convert host_byte_order to network_byte_order
-    serv_addr.sin_port = htons(PORT_NUM); // convert short_integer to networ_byte_order
+    serv_addr.sin_port = htons(PORT_NUM);          // convert short_integer to networ_byte_order
 
     setsockopt(serv_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)); // setting details for sockets
 
@@ -124,7 +127,7 @@ int main()
         {
 
             printf("*PID# %d is waiting for the semaphore.\n", getpid());
-            p(semid);
+            p(semid); // start critical zone
             sleep(5);
             printf("*PID# %d is in the critical zone.\n", getpid());
 
@@ -162,7 +165,7 @@ int main()
             }
             is_hit = check_url(&hit_cnt, &miss_cnt, &process_cnt, url, http_req);
 
-            v(semid);
+            v(semid); // end critical zone
             printf("*PID# %d exited the critical zone.\n", getpid());
             if (is_hit == 1)
                 ;
@@ -174,11 +177,11 @@ int main()
             }
 
             send(sock_fd, http_req, strlen(http_req), 0);
-            while ((len = recv(sock_fd, tmp, BUFF_SIZE - 1, 0)) > 0) {
+            while ((len = recv(sock_fd, tmp, BUFF_SIZE - 1, 0)) > 0)
+            {
                 tmp[len] = '\0';
                 write(cli_fd, tmp, len);
             }
-
 
             memset(http_req, 0, sizeof(http_req));
             memset(tmp, 0, sizeof(tmp));
@@ -191,29 +194,33 @@ int main()
     }
 }
 
-int p(int semid) { // wait
+int p(int semid)
+{ // wait
     struct sembuf pbuf;
 
     pbuf.sem_num = 0;
     pbuf.sem_op = -1;
     pbuf.sem_flg = SEM_UNDO;
-    if ((semop(semid, &pbuf, 1)) == -1) {
+    if ((semop(semid, &pbuf, 1)) == -1)
+    {
         perror("p : semop failed");
         exit(1);
     }
-    else 
+    else
     {
         return 1;
     }
 }
 
-int v(int semid) { // quit
+int v(int semid)
+{ // quit
     struct sembuf vbuf;
 
     vbuf.sem_num = 0;
     vbuf.sem_op = 1;
     vbuf.sem_flg = SEM_UNDO;
-    if ((semop(semid, &vbuf, 1)) == -1) {
+    if ((semop(semid, &vbuf, 1)) == -1)
+    {
         perror("v : semop failed");
         exit(1);
     }
