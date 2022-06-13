@@ -40,7 +40,8 @@ int main()
     struct sockaddr_in serv_addr, cli_addr;
 
     pid_t pid;
-    union semun {
+    union semun
+    {
         int val;
         struct semid_ds *buf;
         unsigned short int *array;
@@ -135,9 +136,8 @@ int main()
             printf("*PID# %d is in the critical zone.\n", getpid());
             if (pthread_create(&tid, NULL, thread_routine, (void *)url) < 0) // create thread
                 printf("Thread: create failed\n");
-            
-            printf("*PID# %d create the *TID# %u.\n", getpid(), (unsigned int)tid);
 
+            printf("*PID# %d create the *TID# %u.\n", getpid(), (unsigned int)tid);
 
             len = read(cli_fd, http_req, BUFF_SIZE); // Read data from clinet_fd and store it in variables
             strcpy(tmp, http_req);
@@ -148,7 +148,7 @@ int main()
                 tok = strtok(NULL, " ");
                 strcpy(url, tok);
             }
-            
+
             sock_fd = socket(PF_INET, SOCK_STREAM, 0); // create socket for IPv4, TCP
             if (sock_fd < 0)
             {
@@ -205,17 +205,17 @@ int main()
 }
 
 void *thread_routine(void *arg)
-{ // thread route to record log files
+{                                     // thread routine to record log files
     t_hit = check_url(arg, http_req); // write logfile in thread routine
-    return (void*)&t_hit;
+    return (void *)&t_hit;
 }
 
 int p(int semid)
 { // wait
     struct sembuf pbuf;
 
-    pbuf.sem_num = 0;
-    pbuf.sem_op = -1;
+    pbuf.sem_num = 0; // 첫번째 semaphore
+    pbuf.sem_op = -1; // critical section에 가고싶어ㅓ요
     pbuf.sem_flg = SEM_UNDO;
     if ((semop(semid, &pbuf, 1)) == -1)
     {
