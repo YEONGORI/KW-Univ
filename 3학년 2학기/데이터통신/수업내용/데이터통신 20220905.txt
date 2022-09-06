@@ -1,0 +1,7 @@
+1.1 Data communication이란?
+- 우리가 통신을 할 때 정보를 공유하는데 이러한 정보의 공유는 local, remote로 이루어질 수 있다.
+- telecommunication은 먼 거리, 원격의 통신을 이야기한다.
+-> Data commmunication은 어떤 전송 매체(유선, 무선)를 통한 두 디바이스간의 데이터 교환이다.
+유선: LAN
+무선: 라디오
+
