@@ -13,6 +13,7 @@ private:
     
 
     std::ofstream fout;
+    std::ofstream fout;
 
 
 public:

@@ -12,6 +12,7 @@ Manager::~Manager()
 
 void Manager::Run(const char* filepath)
 {
+    if ()
     fout.open(RESULT_LOG_PATH);
     ferr.open(ERROR_LOG_PATH);
 
