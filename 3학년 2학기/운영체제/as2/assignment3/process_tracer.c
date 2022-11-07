@@ -6,11 +6,11 @@ pid_t cur_pid = 0;
 
 char *cur_process;
 
-typedef asmlinkage long (*sys_call_ptr_t)(const struct pt_regs *); //
+typedef asmlinkage long (*sys_call_ptr_t)(const struct pt_regs *);
 static sys_call_ptr_t *syscall_table;
 sys_call_ptr_t real_process_tracer;
 
-static asmlinkage int process_tracer(const struct pt_regs *regs);
+static asmlinkage pid_t process_tracer(pid_t trace_task);
 
 EXPORT_SYMBOL(fork_count);
 EXPORT_SYMBOL(cur_pid);
@@ -48,30 +48,39 @@ static void __exit hooking_exit(void)
 	make_ro(syscall_table);
 }
 
-static asmlinkage pid_t process_tracer(const struct pt_regs *regs)
+static asmlinkage pid_t process_tracer(pid_t trace_task)
 {
     struct task_struct *task = current;
-    cur_process = task->comm;
-    cur_pid = regs->di;
-    printk(KERN_INFO "##### TASK INFORMATION OF ''[%d] %s'' #####", cur_pid, cur_process);
+    cur_pid = trace_task;
+
+	for_each_process(task) {
+		if (cur_pid == task->pid) {
+    		cur_process = task->comm;
+    		printk(KERN_INFO "##### TASK INFORMATION OF ''[%d] %s'' #####\n", cur_pid, cur_process);
+			switch (task->state)
+			{
+			case 0:
+				printk(KERN_INFO "- task state : Running or ready\n")
+				break;
+			case 1:
+				printk(KERN_INFO "- task state : Wait with ignoring all signals\n")
+				break;
+			case 2:
+				printk(KERN_INFO "- task state : Wait\n");
+				break;
+			case 3:
+				printk(KERN_INFO "- task state : Stopped\n");
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+
     printk(KERN_INFO "- task state : ", );
 
-
-	if (regs->di == 0)
-	{ // change process name
-		printk(KERN_INFO "[2018202076] %s file[%s] start [x] read - %d / written - %d\n", cur_process, kernel_buffer, read_byte, write_byte);
-		printk(KERN_INFO "open[%d] close[%d] read[%d] write[%d] lseek[%d]\n", open_count, close_count, read_count, write_count, lseek_count);
-		printk(KERN_INFO "OS Assignment 2 process_tracer [%d] End\n", cur_pid);
-		return 0;
-	}
-	else
-	{
-		struct task_struct *task = current;
-		cur_process = task->comm;
-		cur_pid = regs->di;
-		printk(KERN_INFO "OS Assignment 2 process_tracer [%d] Start\n", cur_pid);
-		return 0;
-	}
+	task->pid
 }
 
 module_init(hooking_init);
