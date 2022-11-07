@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#define MAX_PROCESS 100
+#define MAX_PROCESS 10000
 
 int main(void) {
     char num[100];
@@ -14,7 +14,6 @@ int main(void) {
     for (int i=0; i<MAX_PROCESS; i++) {
         char file_name[10000] = {'t','e','m','p','/','\0'};
         sprintf(num, "%d", i);
-        // file_name = strcat(file_name, num);
         FILE *f_write = fopen(strcat(file_name, num), "w+");
         fprintf(f_write, "%d", 1+rand()%9);
         fclose(f_write);
