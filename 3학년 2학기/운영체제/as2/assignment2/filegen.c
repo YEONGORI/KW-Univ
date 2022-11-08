@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#define MAX_PROCESS 10000
+#define MAX_PROCESS 30000
 
 int main(void) {
     char num[100];
