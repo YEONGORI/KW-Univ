@@ -12,9 +12,6 @@ sys_call_ptr_t real_process_tracer;
 
 static asmlinkage pid_t process_tracer(pid_t trace_task);
 
-EXPORT_SYMBOL(fork_count);
-EXPORT_SYMBOL(cur_pid);
-
 void make_rw(void *addr)
 {
 	unsigned int level;
@@ -81,7 +78,7 @@ static asmlinkage pid_t process_tracer(pid_t trace_task)
 			case 32:
 				printk(KERN_INFO "- task state : Zombie process\n");
 				break;
-			case 64:
+			case 128:
 				printk(KERN_INFO "- task state : Dead\n");
 				break;
 			default:
@@ -95,7 +92,7 @@ static asmlinkage pid_t process_tracer(pid_t trace_task)
 			printk(KERN_INFO "- Number of context switches : %d\n", (cur_task->nvcsw + cur_task->nivcsw));
 
 
-			printk(KERN_INFO "- Number of calling fork() : %d\n", fork_count);
+			printk(KERN_INFO "- Number of calling fork() : %d\n", cur_task->fork_count);
 
 
 			printk(KERN_INFO "- it's parent process : [%d] %s\n", par_task->pid, par_process->comm);
