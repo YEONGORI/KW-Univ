@@ -1,7 +1,7 @@
 // every code including wrapping
 #include "sched.h"
 
-int fork_count = 0;
+int fork_count, sibling_count, child_count;
 pid_t cur_pid = 0;
 
 char *cur_process;
@@ -50,14 +50,21 @@ static void __exit hooking_exit(void)
 
 static asmlinkage pid_t process_tracer(pid_t trace_task)
 {
-    struct task_struct *task = current;
-    cur_pid = trace_task;
+    struct task_struct *cur_task, *par_task;
+	struct task_struct *sibling_task, *child_task;
+	struct list_head *list;
 
 	for_each_process(task) {
-		if (cur_pid == task->pid) {
+		if (trace_task == task->pid) {
+			cur_task = current;
+			par_task = task->real_parent
+    		cur_pid = trace_task;
     		cur_process = task->comm;
+			sibling_count = 0;
+			child_count = 0;
     		printk(KERN_INFO "##### TASK INFORMATION OF ''[%d] %s'' #####\n", cur_pid, cur_process);
-			switch (task->state)
+
+			switch (cur_task->state)
 			{
 			case 0:
 				printk(KERN_INFO "- task state : Running or ready\n")
@@ -68,19 +75,59 @@ static asmlinkage pid_t process_tracer(pid_t trace_task)
 			case 2:
 				printk(KERN_INFO "- task state : Wait\n");
 				break;
-			case 3:
+			case 4:
 				printk(KERN_INFO "- task state : Stopped\n");
 				break;
+			case 32:
+				printk(KERN_INFO "- task state : Zombie process\n");
+				break;
+			case 64:
+				printk(KERN_INFO "- task state : Dead\n");
+				break;
 			default:
+				printk(KERN_INFO "- task state : etc.\n");
 				break;
 			}
+
+			printk(KERN_INFO "- Process Group Leader: [%d] %s\n", cur_task->pid, cur_task->comm);
+
+
+			printk(KERN_INFO "- Number of context switches : %d\n", (cur_task->nvcsw + cur_task->nivcsw));
+
+
+			printk(KERN_INFO "- Number of calling fork() : %d\n", fork_count);
+
+
+			printk(KERN_INFO "- it's parent process : [%d] %s\n", par_task->pid, par_process->comm);
+
+
+			printk(KERN_INFO "- it's sibling process(es) : \n");
+			list_for_each_entry(sibling_task, &par_task->children, list) {
+				sibling_count++;
+				printk(KERN_INFO "\t> [%d] %s\n", sibling_task->pid, sibling_task->comm);
+			}
+			if (sibling_count)
+				printk(KERN_INFO "\t> This process has %d sibling process(es)\n", sibling_count);
+			else
+				printk(KERN_INFO "\t> It has no sibling.\n");
+
+
+			printk(KERN_INFO "- it's child process(es) : \n");
+			list_for_each_entry(child_task, &cur_task->children, list) {
+				child_count++;
+				printk(KERN_INFO "\t> [%d] %s\n", child_task->pid, child_task->comm)
+			}
+			if (child_count)
+				printk(KERN_INFO "\t> This process has %d child process(es)\n", child_count);
+			else
+				printk(KERN_INFO "\t> It has no child.\n");
+
+
+			printk(KERN_INFO "##### END OF INFORMATION #####\n");
+			return (trace_task);
 		}
 	}
-
-
-    printk(KERN_INFO "- task state : ", );
-
-	task->pid
+	return (-1);
 }
 
 module_init(hooking_init);
