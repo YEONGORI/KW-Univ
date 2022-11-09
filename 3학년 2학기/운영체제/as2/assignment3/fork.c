@@ -2207,7 +2207,7 @@ long _do_fork(unsigned long clone_flags,
 		return PTR_ERR(p);
 
 	p->fork_count = 0;
-	p->real_parent->fork_count += 1;
+	p->parent->fork_count++;
 
 	/*
 	 * Do this prior waking up the new thread - the thread pointer

@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main(void) {
-    FILE *f_write = fopen("temp.txt", "r+");
+    FILE *f_write = fopen("temp.txt", "w+");
 
     for (int i=0; i<MAX_PROCESSES*2; i++) {
         fprintf(f_write, "%d", i+1);
