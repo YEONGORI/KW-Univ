@@ -10,9 +10,6 @@
 
 #define __NR_ftrace 336
 
-// typedef asmlinkage long (*real_sys)(const struct pt_regs *regs);
-// static real_sys *syscall_table;
-// real_sys real_ftrace; 
 
 typedef asmlinkage long (*sys_call_ptr_t)(const struct pt_regs *);
 static sys_call_ptr_t *syscall_table;
@@ -37,17 +34,6 @@ void make_ro(void *addr)
 	pte->pte = pte->pte & ~_PAGE_RW;
 }
 
-// static int __init hooking_init(void)
-// {
-//    syscall_table = (real_sys*) kallsyms_lookup_name("sys_call_table");
-
-//    make_rw(syscall_table);
-//    real_ftrace = syscall_table[__NR_ftrace];
-//    syscall_table[__NR_ftrace] = (real_sys)file_varea;
-
-//    return 0;
-// }
-
 static int __init hooking_init(void)
 {
 	syscall_table = (sys_call_ptr_t *)kallsyms_lookup_name("sys_call_table");
@@ -67,19 +53,15 @@ static void __exit hooking_exit(void)
 
 static asmlinkage pid_t file_varea(const struct pt_regs *regs)
 {
-   pid_t process_id;
-   struct task_struct *_task;
-   struct mm_struct *mm;
-   struct vm_area_struct *mmap;
+   pid_t process_id = regs->di;
+   struct task_struct *_task = pid_task(find_vpid(process_id), PIDTYPE_PID);
+   struct mm_struct *mm = get_task_mm(_task);
+   struct vm_area_struct *mmap = mm->mmap;
    char *_buf = NULL;
 
    struct file *_file = NULL;
    char *_path = NULL;
 
-   process_id = regs->di;
-   _task = pid_task(find_vpid(process_id), PIDTYPE_PID);
-   mm = get_task_mm(_task);
-   mmap = mm->mmap;
    _buf = kmalloc(1024, GFP_KERNEL);
 
    printk(KERN_INFO "######## Loaded files of a process 'assin4(%d)' in VM ########\n", process_id);
@@ -93,21 +75,16 @@ static asmlinkage pid_t file_varea(const struct pt_regs *regs)
          _path = d_path(&_file->f_path, _buf, 1024);
          printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, _path);
       }
-
       mmap = mmap->vm_next;
    }
 
-
-   // do{
-   //    file = mmap->vm_file;
-   //    memset(buf, 0, 1024);
-
-   //    if(file){
-   //       path = d_path(&file->f_path, buf, 1024);   
-   //       printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, path);
-   //    }
-   //    mmap = mmap->vm_next;
-   // }while(mmap!=NULL);
+      _file = mmap->vm_file;
+      if (_file)
+      {
+         memset(_buf, 0, 1024);
+         _path = d_path(&_file->f_path, _buf, 1024);
+         printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, _path);
+      }
 
    printk(KERN_INFO "################################################################\n");
    return 0;
