@@ -1,9 +1,10 @@
 #include <linux/fs.h>
 #include <linux/slab.h>
 #include <linux/unistd.h>
+
 #include <linux/module.h>
-#include <linux/sched/mm.h>
 #include <linux/kallsyms.h>
+#include <linux/sched/mm.h>
 #include <linux/syscalls.h>
 #include <asm/syscall_wrapper.h>
 
@@ -53,7 +54,7 @@ static int __init hooking_init(void)
 
 	make_rw(syscall_table);
 	real_process_tracer = syscall_table[__NR_ftrace];
-	syscall_table[__NR_ftrace] = (sys_call_ptr_t)process_tracer;
+	syscall_table[__NR_ftrace] = (sys_call_ptr_t)file_varea;
 
 	return 0;
 }
@@ -64,41 +65,46 @@ static void __exit hooking_exit(void)
 	make_ro(syscall_table);
 }
 
-static asmlinkage pid_t file_varea(const struct pt_regs *regs){
-   // processName, pid, vm address, data address, code address, heap address, origin file total path
-
+static asmlinkage pid_t file_varea(const struct pt_regs *regs)
+{
    pid_t process_id = regs->di;
-   struct task_struct *cur_task = pid_task(process_id, PIDTYPE_PID)
+   struct task_struct *_task = pid_task(find_vpid(process_id), PIDTYPE_PID);
+   struct mm_struct *mm = get_task_mm(_task);
+   struct vm_area_struct *mmap = mm->mmap;
 
-   int my_pid;
-   char *path;
-   char *buf = kmalloc(1024, GFP_KERNEL);
-   struct task_struct* task;
-   struct mm_struct *mm;
-   struct vm_area_struct *mmap;
-   struct file * file = NULL;
+   // char *_buf = kmalloc(1024, GFP_KERNEL);
+   char _buf[1000];
+   char *_path = NULL;
 
-   my_pid = (int)regs->di;
-   task = pid_task(find_vpid(my_pid),PIDTYPE_PID);
-   mm = get_task_mm(task);
-   mmap = mm->mmap;
+   printk(KERN_INFO "######## Loaded files of a process 'assin4(%d)' in VM ########\n", process_id);
 
-   do{
-      file = mmap->vm_file;
-      memset(buf, 0, 1024);
-
-      if(file){
-         path = d_path(&file->f_path, buf, 1024);   
-         printk(KERN_INFO "######## Loaded files of a process 'assin4(%d)' in VM ########\n", my_pid);
-         printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, path);
-         printk(KERN_INFO "################################################################\n");
+   while (mmap->vm_next)
+   {
+      struct file *_file = mmap->vm_file;
+      if (_file)
+      {
+         memset(_path, 0, 1024);
+         _path = d_path(&_file->f_path, _buf, 1024);
+         printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, _path);
       }
+
       mmap = mmap->vm_next;
-   }while(mmap!=NULL);
+   }
 
-}
+   // do{
+   //    file = mmap->vm_file;
+   //    memset(buf, 0, 1024);
 
+   //    if(file){
+   //       path = d_path(&file->f_path, buf, 1024);   
+   //       printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, path);
+   //    }
+   //    mmap = mmap->vm_next;
+   // }while(mmap!=NULL);
 
+   printk(KERN_INFO "################################################################\n");
+   return process_id;
+};
 
 module_init(hooking_init);
 module_exit(hooking_exit);

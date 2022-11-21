@@ -1,0 +1,1 @@
+cmd_/home/os2018202076/Desktop/KW-Univ/as3/4-1/file_varea.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -T ./scripts/module-common.lds  --build-id  -o /home/os2018202076/Desktop/KW-Univ/as3/4-1/file_varea.ko /home/os2018202076/Desktop/KW-Univ/as3/4-1/file_varea.o /home/os2018202076/Desktop/KW-Univ/as3/4-1/file_varea.mod.o ;  true
