@@ -67,29 +67,36 @@ static void __exit hooking_exit(void)
 
 static asmlinkage pid_t file_varea(const struct pt_regs *regs)
 {
-   pid_t process_id = regs->di;
-   struct task_struct *_task = pid_task(find_vpid(process_id), PIDTYPE_PID);
-   struct mm_struct *mm = get_task_mm(_task);
-   struct vm_area_struct *mmap = mm->mmap;
+   pid_t process_id;
+   struct task_struct *_task;
+   struct mm_struct *mm;
+   struct vm_area_struct *mmap;
+   char *_buf = NULL;
 
-   // char *_buf = kmalloc(1024, GFP_KERNEL);
-   char _buf[1000];
+   struct file *_file = NULL;
    char *_path = NULL;
+
+   process_id = regs->di;
+   _task = pid_task(find_vpid(process_id), PIDTYPE_PID);
+   mm = get_task_mm(_task);
+   mmap = mm->mmap;
+   _buf = kmalloc(1024, GFP_KERNEL);
 
    printk(KERN_INFO "######## Loaded files of a process 'assin4(%d)' in VM ########\n", process_id);
 
    while (mmap->vm_next)
    {
-      struct file *_file = mmap->vm_file;
+      _file = mmap->vm_file;
       if (_file)
       {
-         memset(_path, 0, 1024);
+         memset(_buf, 0, 1024);
          _path = d_path(&_file->f_path, _buf, 1024);
          printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, _path);
       }
 
       mmap = mmap->vm_next;
    }
+
 
    // do{
    //    file = mmap->vm_file;
@@ -103,7 +110,7 @@ static asmlinkage pid_t file_varea(const struct pt_regs *regs)
    // }while(mmap!=NULL);
 
    printk(KERN_INFO "################################################################\n");
-   return process_id;
+   return 0;
 };
 
 module_init(hooking_init);
