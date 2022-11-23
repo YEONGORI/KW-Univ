@@ -78,13 +78,13 @@ static asmlinkage pid_t file_varea(const struct pt_regs *regs)
       mmap = mmap->vm_next;
    }
 
-      _file = mmap->vm_file;
-      if (_file)
-      {
-         memset(_buf, 0, 1024);
-         _path = d_path(&_file->f_path, _buf, 1024);
-         printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, _path);
-      }
+   _file = mmap->vm_file;
+   if (_file)
+   {
+      memset(_buf, 0, 1024);
+      _path = d_path(&_file->f_path, _buf, 1024);
+      printk(KERN_INFO "mem[%lx~%lx] code[%lx~%lx] data[%lx~%lx] heap[%lx~%lx] %s\n", mmap->vm_start, mmap->vm_end, mm->start_code, mm->end_code, mm->start_data, mm->end_data, mm->start_brk, mm->brk, _path);
+   }
 
    printk(KERN_INFO "################################################################\n");
    return 0;
