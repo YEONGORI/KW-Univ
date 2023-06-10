@@ -1,6 +1,0 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/home/yeongori/workspace/KW-Univ/시스템 프로그래밍'
-make: Leaving directory '/home/yeongori/workspace/KW-Univ/시스템 프로그래밍'
- 
-make: *** No targets specified and no makefile found.  Stop.
-
