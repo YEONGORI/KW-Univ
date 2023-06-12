@@ -2,6 +2,10 @@
 #define INT16U unsigned short
 #define OS_EVENT_TBL_SIZE 10
 
+typedef struct
+{
+} OSTCBCur;
+
 typedef struct // Event Control Block 구조체
 {
 	INT8U OSEventType; // Semaphore의 경우 OS_EVENT_TYPE_SEM
