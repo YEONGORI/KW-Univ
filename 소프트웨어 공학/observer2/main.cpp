@@ -1,5 +1,8 @@
 #include "observer.h"
 #include "subject.h"
+#include <iostream>
+#include <algorithm>
+#include <string>
 
 int main()
 {

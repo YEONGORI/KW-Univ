@@ -5,7 +5,7 @@
 #include <string>
 #include "observer.h"
 
-class Shop : IObserver
+class Shop : public IObserver
 {
 	// Name of the Shop
 	std::string name;

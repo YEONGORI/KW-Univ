@@ -24,10 +24,12 @@ public:
 	{
 		observers.push_back(obs);
 	}
+
 	void detach(Observer *obs)
 	{
 		observers.erase(find(observers.begin(), observers.end(), obs));
 	}
+
 	void notify()
 	{
 		for (list<Observer *>::iterator iter = observers.begin();

@@ -5,6 +5,7 @@
 
 #include <list>
 #include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -27,8 +28,7 @@ private:
 	list<ConcreteSubject *> subjects;
 	string name;
 };
-ConcreteObserver::ConcreteObserver(string newname) : Observer(), subjects(0),
-													 name(newname){};
+ConcreteObserver::ConcreteObserver(string newname) : Observer(), subjects(NULL), name(newname){};
 void ConcreteObserver::attachSubject(ConcreteSubject *subject)
 {
 	subjects.push_back(subject);
