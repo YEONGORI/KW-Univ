@@ -17,12 +17,6 @@ public:
 	void Notify(float price);
 };
 
-// CPP File
-
-// void ASubject::Attach(Shop *shop)
-// {
-// 	list.push_back(shop);
-// }
 void ASubject::Attach(IObserver *iobserver)
 {
 	list.push_back(iobserver);
